@@ -521,9 +521,6 @@ type JiraConfig struct {
 	Summary     string                 `yaml:"summary" json:"summary"`
 	Description string                 `yaml:"description" json:"description"`
 	Fields      map[string]interface{} `yaml:"fields" json:"fields"`
-
-	// Catches all undefined fields and must be empty after parsing.
-	XXX map[string]interface{} `yaml:",inline" json:"-"`
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface.
@@ -556,5 +553,5 @@ func (c *JiraConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if c.Summary == "" {
 		return fmt.Errorf("missing summary in Jira config")
 	}
-	return checkOverflow(c.XXX, "Jira config")
+	return nil
 }
