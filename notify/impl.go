@@ -118,7 +118,7 @@ func BuildReceiverIntegrations(nc *config.Receiver, tmpl *template.Template, log
 		add("pushover", i, n, c)
 	}
 	for i, c := range nc.JiraConfigs {
-		n := NewJira(c, tmpl)
+		n := NewJira(c, tmpl, logger)
 		add("jira", i, n, c)
 	}
 	return integrations
@@ -1327,12 +1327,13 @@ func (n *Pushover) retry(statusCode int) (bool, error) {
 }
 
 type Jira struct {
-	conf *config.JiraConfig
-	tmpl *template.Template
+	conf   *config.JiraConfig
+	tmpl   *template.Template
+	logger log.Logger
 }
 
-func NewJira(c *config.JiraConfig, t *template.Template) *Jira {
-	return &Jira{conf: c, tmpl: t}
+func NewJira(c *config.JiraConfig, t *template.Template, l log.Logger) *Jira {
+	return &Jira{conf: c, tmpl: t, logger: l}
 }
 
 type jiraCreateIssueRequest struct {
@@ -1348,7 +1349,7 @@ type jiraCreateIssueResponse struct {
 // Notify implements the Notifier interface.
 func (n *Jira) Notify(ctx context.Context, as ...*types.Alert) (bool, error) {
 	var err error
-	data := n.tmpl.Data(receiverName(ctx), groupLabels(ctx), as...)
+	data := n.tmpl.Data(receiverName(ctx, n.logger), groupLabels(ctx, n.logger), as...)
 	tmpl := tmplText(n.tmpl, data, &err)
 
 	fields := map[string]interface{}{
@@ -1381,7 +1382,7 @@ func (n *Jira) Notify(ctx context.Context, as ...*types.Alert) (bool, error) {
 	req.Host = n.conf.Domain
 	req.Header.Add("Content-Type", "application/json")
 
-	log.Debugf("Sending request body %q to %s", string(body), req.URL)
+	n.logger.Log(fmt.Sprintf("Sending request body %q to %s", string(body), req.URL))
 	res, err := ctxhttp.Do(ctx, http.DefaultClient, req)
 	if err != nil {
 		return false, err
