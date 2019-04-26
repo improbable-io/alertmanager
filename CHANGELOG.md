@@ -1,5 +1,6 @@
 ## Next release
 
+* [CHANGE] Opsgenie notification now uses official responders notion instead of "teams". Teams field is deprecated now and will fail the config parsing.
 * [CHANGE] Make api/v2/status.cluster.{name,peers} properties optional for Alertmanager with disabled clustering (#1728)
 
 ## 0.16.1 / 2019-01-31
